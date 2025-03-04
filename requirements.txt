@@ -20,7 +20,9 @@ pillow==11.1.0
 platformdirs==4.3.6
 pooch==1.8.2
 pygame==2.6.1
+pylsl==1.17.6
 pyparsing==3.2.1
+pyqtgraph==0.13.7
 python-dateutil==2.9.0.post0
 pytz==2025.1
 requests==2.32.3
