@@ -6,7 +6,8 @@ def generate_event_epochs(df, window=(-0.5, 1.0), fs=200):
     total_samples = samples_before + samples_after
 
     # Find event timestamps and corresponding marker values
-    events = df[df["Marker Channel"].isin([2,3,4,5,6,7,8])][["Timestamp", "Marker Channel"]].values  # Get time + marker value
+    # The 'isin' defines which events to make epochs for. 
+    events = df[df["Marker Channel"].isin([1,2,3,4,5,6,7,8])][["Timestamp", "Marker Channel"]].values  # Get time + marker value
 
     print(f"Number of events: {len(events)}")
 
@@ -18,7 +19,7 @@ def generate_event_epochs(df, window=(-0.5, 1.0), fs=200):
         # Extract data within this time window
         epoch_df = df[(df["Timestamp"] >= start_time) & (df["Timestamp"] <= end_time)].copy()
         
-        # Ensure consistent(ish) length
+        # Ensure consistent(ish) length of epoch (there will be some packet loss as recording over ble)
         if len(epoch_df) >= total_samples * 0.9825:
             # Add marker column to indicate event type
             epoch_df["Event Type"] = marker_value  
@@ -31,9 +32,9 @@ def generate_idle_epochs(df, window=(-0.5, 1.0), fs=200):
     samples_after = int(window[1] * fs)
     total_samples = samples_before + samples_after
 
-    # Identify timestamps without events
+    # Find timestamps without events
     event_times = set(df[df["Marker Channel"] != 0]["Timestamp"].values)
-    idle_df = df[~df["Timestamp"].isin(event_times)]  # Select non-event rows
+    idle_df = df[~df["Timestamp"].isin(event_times)]  # Select rows without events
     timestamps = idle_df["Timestamp"].values
 
     i = 0
@@ -44,8 +45,8 @@ def generate_idle_epochs(df, window=(-0.5, 1.0), fs=200):
         # Extract potential idle epoch
         epoch_df = df[(df["Timestamp"] >= start_time) & (df["Timestamp"] <= end_time)].copy()
 
-        if len(epoch_df) >= total_samples * 0.9825:  # Ensure sufficient samples
-            epoch_df["Event Type"] = -1  # Label as idle
+        if len(epoch_df) >= total_samples * 0.9825:  # Ensure enough samples
+            epoch_df["Event Type"] = -1  # Label as idle (special marker)
             idle_epochs[(start_time, -1)] = epoch_df
             i += total_samples  # Move forward to avoid overlap
         else:
