@@ -27,6 +27,7 @@ Sample Index, EXG Channel 0, EXG Channel 1, EXG Channel 2, EXG Channel 3, Accel 
         for file in os.listdir(session_path):
             if file.endswith(".txt"):
                 recordings.append(os.path.join(session_path, file))
+    print("")
 
     with open(output_file, "w") as out_file:
         out_file.write(header+"\n")  # Write the header once
@@ -40,7 +41,7 @@ Sample Index, EXG Channel 0, EXG Channel 1, EXG Channel 2, EXG Channel 3, Accel 
 
     with open(output_file, "r") as f:
         lines = f.readlines()
-    start_idx = next(i for i, line in enumerate(lines) if not line.startswith('%')) # AI generated
+    start_idx = next(i for i, line in enumerate(lines) if not line.startswith('%')) # AI generated line
 
     dataframe = pd.read_csv(output_file, skiprows=start_idx) # Put data into pandas dataframe
 

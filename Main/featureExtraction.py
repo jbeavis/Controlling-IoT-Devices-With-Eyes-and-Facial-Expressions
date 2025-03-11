@@ -6,7 +6,6 @@ import numpy as np
 def extract_features(epochs, fs=200):
     features = []
 
-    # Debug
 
     for (timestamp, event_type), epoch_df in epochs.items():
         feature_dict = {"Timestamp": timestamp, "Event Type": event_type}
@@ -22,7 +21,7 @@ def extract_features(epochs, fs=200):
             feature_dict[f"Ch{ch}_RMS"] = np.sqrt(np.mean(signal ** 2))
             
             # Frequency domain features
-            freqs, psd = welch(signal, fs=fs, nperseg=len(signal))
+            freqs, psd = welch(signal, fs=fs, nperseg=200)
             feature_dict[f"Ch{ch}_Delta"] = np.sum(psd[(freqs >= 0.5) & (freqs < 4)])
             feature_dict[f"Ch{ch}_Theta"] = np.sum(psd[(freqs >= 4) & (freqs < 8)])
             feature_dict[f"Ch{ch}_Alpha"] = np.sum(psd[(freqs >= 8) & (freqs < 13)])

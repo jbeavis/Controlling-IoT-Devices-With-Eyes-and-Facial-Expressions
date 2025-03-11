@@ -1,3 +1,4 @@
+import random 
 
 def generate_event_epochs(df, window=(-0.5, 1.0), fs=200):
     epochs = {}
@@ -26,7 +27,7 @@ def generate_event_epochs(df, window=(-0.5, 1.0), fs=200):
             epochs[(event_time, marker_value)] = epoch_df
     return epochs
 
-def generate_idle_epochs(df, window=(-0.5, 1.0), fs=200):
+def generate_idle_epochs(df, totalEpochsWithMarkers, window=(-0.5, 1.0), fs=200, ):
     idle_epochs = {}
     samples_before = int(abs(window[0]) * fs)
     samples_after = int(window[1] * fs)
@@ -52,4 +53,9 @@ def generate_idle_epochs(df, window=(-0.5, 1.0), fs=200):
         else:
             i += 1  # Shift forward if the window is too short
 
-    return idle_epochs
+    # We want the number of idle epochs to be around the same number as the number of any other epoch otherwise the model is biased
+    random.seed(42)
+    random_keys = random.sample(idle_epochs.keys(), round(totalEpochsWithMarkers/8))  # Get random keys
+    randomSample = {key: idle_epochs[key] for key in random_keys}  
+    return randomSample
+    # return idle_epochs

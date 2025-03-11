@@ -1,12 +1,20 @@
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import learning_curve
+from imblearn.under_sampling import RandomUnderSampler
+import matplotlib.pyplot as plt
+
 import pickle
 
-def trainModel(df_features):
+def trainModel(df_features, totalEpochs):
     # Separate features from markers for machine learning
     X = df_features.drop(columns=["Timestamp", "Event Type"])
     y = df_features["Event Type"]  # Labels
+
+    # Undersample -- I blink far more often than I do anything else during recordings (I can't help it) but this skews things
+    undersampler = RandomUnderSampler(sampling_strategy={1: totalEpochs//8}, random_state=42) 
+    X, y = undersampler.fit_resample(X, y)
 
     # Normalize feature values (important for consistency)
     scaler = StandardScaler()
@@ -22,15 +30,10 @@ def trainModel(df_features):
     print(f"Training samples: {len(X_train)}, testing samples: {len(X_test)}")
 
     # Initialize model
-    rf_model = RandomForestClassifier(n_estimators=150, random_state=42,max_features="log2") # More estimators = more accurate? but slower
+    rf_model = RandomForestClassifier(n_estimators=300, random_state=42, max_features="log2") # More estimators = more accurate? but slower
 
     # Train the model
     rf_model.fit(X_train, y_train)
-    train_acc = rf_model.score(X_train, y_train)
-    test_acc = rf_model.score(X_test, y_test)
-    print(f"Training Accuracy: {train_acc:.2f}")
-    print(f"Testing Accuracy: {test_acc:.2f}")
+    print("Model training complete! :)\n")
 
-    print("Model training complete! :)")
-    
     return rf_model, X_test, y_test

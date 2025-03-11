@@ -7,6 +7,7 @@ import featureExtraction
 import pickle
 from collections import deque 
 from sklearn.preprocessing import StandardScaler
+import time
 
 markers = {-1:"Idle", 1: "Blink", 2: "Left", 3: "Right", 4: "Jaw", 5: "Up", 6:"Down", 7: "Happy", 8: "Frustrated"}
 
@@ -15,12 +16,9 @@ with open("model.pkl", "rb") as f:
 with open("scaler.pkl", "rb") as f: # Must use the same scaler as the one used for creating the model
     scaler = pickle.load(f)
 
-# Need python threading. 
-# Always be receiving new data
-# Additionally, analyse the data every x seconds
-# Return guessed event
-
 df_columns = ["EXG Channel 0", "EXG Channel 1","EXG Channel 2", "EXG Channel 3", "Timestamp"]
+
+lastEventTime = 0
 
 # first resolve an EEG stream on the lab network
 print("looking for an EEG stream...")
@@ -28,7 +26,6 @@ streams = resolve_byprop("type", "EEG")
 
 # create a new inlet to read from the stream
 inlet = StreamInlet(streams[0])
-
 
 # Define parameters
 window_size = 200  # 1 second of data ( 200 Hz)
@@ -39,8 +36,9 @@ df_columns = ["EXG Channel 0", "EXG Channel 1", "EXG Channel 2", "EXG Channel 3"
 
 # Streaming loop
 while True:
+    currentTime = time.time()
     # Collect new samples
-    for _ in range(step_size):  # Only collect step_size samples at a time
+    for x in range(step_size):  # Only collect step_size samples at a time
         sample, timestamp = inlet.pull_sample()
         buffer.append(sample + [timestamp])  # Append data with timestamp
 
@@ -60,5 +58,6 @@ while True:
     prediction = new_model.predict(features)
 
     # Print results
-    if prediction[0] != -1:
+    if (prediction[0] != -1) and (currentTime - lastEventTime >= 0.9): # Only report predicted marker if there hasn't been another one recently
         print(markers[prediction[0]], new_model.predict_proba(features))
+        lastEventTime = currentTime
