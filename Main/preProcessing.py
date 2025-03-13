@@ -11,6 +11,7 @@ import filterData
 import generateEpochs
 import featureExtraction
 import trainModel
+import hyperparameterTuning
 
 # Load the data
 df = loadData.loadData()
@@ -34,6 +35,29 @@ print(f"Created {len(all_epochs)} total epochs\n")
 # Extract Features From epochs
 df_features = featureExtraction.extract_features(all_epochs)
 
+# # DEBUG: Save features for fast running later
+# with open("features.pkl", "wb") as f:
+#     pickle.dump(df_features, f)
+
+# # DEBUG: Load features if saved
+# with open("features.pkl", "rb") as f:
+#     df_features = pickle.load(f)
+
+
+# TESTING: Binary model
+df_features_copy = df_features.copy()
+for i in range(len(df_features_copy)):
+    if df_features_copy.loc[i, "Event Type"] != -1:
+        df_features_copy.loc[i, "Event Type"] = 1
+
+binaryModel, X_test, y_test = trainModel.trainModel(df_features_copy, len(all_epochs))
+
+y_pred = binaryModel.predict(X_test)
+
+# Print accuracy and detailed report
+print(f"Accuracy for binary model: {accuracy_score(y_test, y_pred):.4f}")
+print(classification_report(y_test, y_pred))
+
 # Train Model
 rf_model, X_test, y_test = trainModel.trainModel(df_features, len(all_epochs))
 
@@ -43,6 +67,9 @@ y_pred = rf_model.predict(X_test)
 # Print accuracy and detailed report
 print(f"Accuracy: {accuracy_score(y_test, y_pred):.4f}")
 print(classification_report(y_test, y_pred))
+
+# Hyperparameter tuning:
+hyperparameterTuning.hyperparameterTuning()
 
 # # Generate the confusion matrix
 # cm = confusion_matrix(y_test, y_pred)

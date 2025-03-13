@@ -27,7 +27,7 @@ def generate_event_epochs(df, window=(-0.5, 1.0), fs=200):
             epochs[(event_time, marker_value)] = epoch_df
     return epochs
 
-def generate_idle_epochs(df, totalEpochsWithMarkers, window=(-0.5, 1.0), fs=200, ):
+def generate_idle_epochs(df, totalEpochsWithMarkers, window=(-0.7, 1.8), fs=200, ):
     idle_epochs = {}
     samples_before = int(abs(window[0]) * fs)
     samples_after = int(window[1] * fs)
@@ -40,6 +40,8 @@ def generate_idle_epochs(df, totalEpochsWithMarkers, window=(-0.5, 1.0), fs=200,
 
     i = 0
     while i < len(timestamps) - total_samples:
+        if len(idle_epochs) > (round(totalEpochsWithMarkers/8) * 3): # Don't collect too many idle epochs, we don't need too many
+            break
         start_time = timestamps[i]
         end_time = start_time + (total_samples / fs)
 

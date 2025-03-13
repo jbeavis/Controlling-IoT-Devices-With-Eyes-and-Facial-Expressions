@@ -13,7 +13,8 @@ def trainModel(df_features, totalEpochs):
     y = df_features["Event Type"]  # Labels
 
     # Undersample -- I blink far more often than I do anything else during recordings (I can't help it) but this skews things
-    undersampler = RandomUnderSampler(sampling_strategy={1: totalEpochs//8}, random_state=42) 
+    #sampling_strategy={1: totalEpochs//9}, 
+    undersampler = RandomUnderSampler(random_state=42) 
     X, y = undersampler.fit_resample(X, y)
 
     # Normalize feature values (important for consistency)
@@ -30,10 +31,19 @@ def trainModel(df_features, totalEpochs):
     print(f"Training samples: {len(X_train)}, testing samples: {len(X_test)}")
 
     # Initialize model
-    rf_model = RandomForestClassifier(n_estimators=300, random_state=42, max_features="log2") # More estimators = more accurate? but slower
+    rf_model = RandomForestClassifier(n_estimators=200, random_state=42, max_features="log2", max_depth=10, min_samples_split=2, class_weight={-1:5,1:1,2:1,3:1,4:1,5:1,6:1,7:1,8:1,9:1}) # More estimators = more accurate? but slower
 
     # Train the model
     rf_model.fit(X_train, y_train)
     print("Model training complete! :)\n")
+    
+    # Perform Grid Search with 5-fold cross-validation
+    grid_search = GridSearchCV(rf_model, param_grid, cv=5, scoring='accuracy', n_jobs=-1)
+
+    # Fit the model on your training data
+    grid_search.fit(X_train, y_train)
+
+    # Get the best hyperparameters
+    print("Best Hyperparameters:", grid_search.best_params_)
 
     return rf_model, X_test, y_test
